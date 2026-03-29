@@ -14,3 +14,7 @@ Códigos de apoio as aulas desenvolvidos em Python 3.12
 ** Pynetlab - testador de vazão similar ao Iperf (Linux/Windows
 
 ** Mac-Telnet - acesso remoto em linha de comando usando endereçamento MAC (Linux)
+
+** Pyserk - jogo multiplayer (Linux/Windows)
+
+** 4GOAL - jogo multiplayer (Linux/Windows)
