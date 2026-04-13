@@ -40,16 +40,34 @@ class Server:
                                         "y": random.randrange(80, HEIGHT-80, 40)})
 
     def spawn_horde(self):
-        num = max(4, len(self.clients) * 3)
+        num_players = len(self.clients)
+        if num_players == 0:
+            self.state["robots"] = []
+            return
+
+        # --- Lógica de Escalonamento Solicitada ---
+        if num_players <= 3:
+            # Até 3 jogadores: 2 de cada tipo por jogador (4 total por humano)
+            target_total = num_players * 4
+        else:
+            # Após 3 jogadores: Base 12 + 2 para cada novo jogador
+            target_total = 12 + (num_players - 3) * 2
+
         self.state["robots"] = []
-        for i in range(num):
+        for i in range(target_total):
             rx, ry = self.get_safe_spawn()
+            
+            # Define o tipo: Alterna para manter 50% de cada sempre que possível
+            is_sniper = (i % 2 == 0) 
+            
             self.state["robots"].append({
-             "x": rx, "y": ry, 
-            "alive": True, 
-            "sniper": (i % 2 == 0), 
-            "last_shoot": time.time() + random.uniform(1, 3)
-        })
+                "x": rx, "y": ry, 
+                "alive": True, 
+                "sniper": is_sniper, 
+                "last_shoot": time.time() + random.uniform(1, 3)
+            })
+        
+        print(f"[*] Horda Gerada: {target_total} robôs para {num_players} jogadores.")
 
     def spawn_powerup(self):
         px, py = self.get_safe_spawn()
@@ -215,6 +233,7 @@ class Server:
                             self.clients[s] = name
                             px, py = self.get_safe_spawn() # Busca posição segura aqui
                             self.state["players"].append({"name":name, "x":px, "y":py, "alive":True, "score":0, "sprite_id":len(self.state["players"])%8, "p_cross_active":False, "shots_left":0})
+                            self.spawn_horde()
                         else: self.handle_msg(s, d)
                     except: self.remove(s)
             self.update_physics(); self.broadcast_state(); time.sleep(0.015)
@@ -223,6 +242,7 @@ class Server:
         if s in self.clients:
             self.state["players"] = [p for p in self.state["players"] if p["name"] != self.clients[s]]
             del self.clients[s]
+            self.spawn_horde()
         if s in self.inputs: self.inputs.remove(s); s.close()
 
 if __name__ == "__main__":
